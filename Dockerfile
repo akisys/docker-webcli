@@ -3,6 +3,7 @@ FROM dieterreuter/gotty
 ENV LANG=C.UTF-8 \
     HOME=/gotty \
     GOTTY_RELEASE="v1.0.1" \
+    DC_REL="1.23.1" \
     TERM=xterm-256color
 
 WORKDIR /root
@@ -11,6 +12,7 @@ RUN apk add --update \
     bash \
     docker \
     tmux \
+    vim \
     && rm -rf /var/cache/apk/* \
     && rm /usr/bin/docker-* \
     && rm /usr/bin/dockerd \
@@ -20,7 +22,9 @@ RUN apk add --update \
     && chmod u+s,g+rx /usr/bin/docker \
     && ( curl -L https://github.com/yudai/gotty/releases/download/$GOTTY_RELEASE/gotty_linux_amd64.tar.gz | gunzip | tar x ) \
     && mv -f ./gotty /usr/bin/gotty \
-    && rm -f /gotty
+    && rm -f /gotty \
+    && ( curl -L "https://github.com/docker/compose/releases/download/$DC_REL/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose ) \
+    && chmod +x /usr/bin/docker-compose
 
 WORKDIR $HOME
 USER gotty
