@@ -8,6 +8,9 @@ services:
       context: .
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - $PWD:/gotty/def
+    environment:
+      DGID: 134
     ports:
       - 9081:9081
 
