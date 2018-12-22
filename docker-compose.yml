@@ -1,0 +1,13 @@
+version: "2"
+
+services:
+
+  webcli:
+    image: akisys.webcli:latest
+    build:
+      context: .
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9081:9081
+
