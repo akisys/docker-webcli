@@ -8,7 +8,7 @@ services:
       context: .
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - $PWD:/gotty/def
+      - $PWD:/webcli/def
     environment:
       DGID: 134
     ports:
