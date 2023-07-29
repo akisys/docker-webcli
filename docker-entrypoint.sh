@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-BASE_CALL="/usr/bin/gotty -a ${GOTTY_BIND} -p ${GOTTY_PORT} ${GOTTY_OPTS}"
+BASE_CALL="/usr/local/bin/tty2web ${TTY2WEB_OPTS}"
 
 if [ -e /var/run/docker.sock ]; then
   if [ -z "${DGID}" ]; then
@@ -11,9 +11,8 @@ if [ -e /var/run/docker.sock ]; then
   addgroup -g $DGID -S runtime
   set -e
   RUNGROUP="$DGID"
-else
-  RUNGROUP="gotty"
 fi
 
-usermod -G $RUNGROUP gotty
-su-exec gotty:$RUNGROUP ${BASE_CALL} $@
+usermod -G $RUNGROUP $RUNUSER
+su-exec $RUNUSER:$RUNGROUP ${BASE_CALL} $@
+

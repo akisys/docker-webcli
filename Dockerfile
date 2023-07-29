@@ -1,51 +1,54 @@
-FROM dieterreuter/gotty
+FROM alpine:3.18
+
+LABEL org.opencontainers.image.authors="akisys@github"
 
 ENV LANG=C.UTF-8 \
-    HOME=/gotty \
-    GOTTY_RELEASE="v1.0.1" \
-    DC_REL="1.23.1" \
+    HOSTNAME=webshell \
+    HOME=/webcli \
+    RUNUSER=webcli \
+    RUNGROUP=webcli \
+    TTY2WEB_RELEASE="v3.0.0" \
     TERM=xterm-256color
 
 WORKDIR /root
 USER root
 
-RUN apk add --update \
-    bash \
-    docker \
-    tmux \
-    vim \
-    su-exec \
-    shadow \
-    && rm -rf /var/cache/apk/* \
-    && rm /usr/bin/docker-* \
-    && rm /usr/bin/dockerd
+RUN set -ex \
+    && apk add --update --no-cache \
+       bash \
+       docker-cli \
+       docker-cli-compose \
+       docker-cli-buildx \
+       tmux \
+       vim \
+       su-exec \
+       shadow \
+       tini
 
 RUN set -ex \
-    && addgroup gotty \
-    && adduser -h $HOME -D -s /bin/bash -G gotty gotty \
-    && ( curl -L https://github.com/yudai/gotty/releases/download/$GOTTY_RELEASE/gotty_linux_amd64.tar.gz | gunzip | tar x ) \
-    && mv -f ./gotty /usr/bin/gotty \
-    && rm -f /gotty
-
-RUN set -ex \
-    && ( curl -L "https://github.com/docker/compose/releases/download/$DC_REL/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose ) \
-    && chown root:gotty /usr/bin/docker-compose \
-    && chmod +x /usr/bin/docker-compose
+    && addgroup $RUNGROUP \
+    && adduser -h $HOME -D -s /bin/bash -G $RUNGROUP $RUNUSER \
+    && ( wget https://github.com/kost/tty2web/releases/download/$TTY2WEB_RELEASE/tty2web_linux_amd64 -O /usr/local/bin/tty2web ) \
+    && chmod +x /usr/local/bin/tty2web
 
 RUN set -ex \
     && chmod o-rwx /bin/su \
-    && chmod o-rwx /sbin/su-exec
+    && chmod o-rwx /sbin/su-exec \
+    && chmod o+x /bin/busybox
 
 WORKDIR $HOME
 EXPOSE 9081
 
-ENV GOTTY_BIND="0.0.0.0" \
-    GOTTY_PORT="9081" \
-    GOTTY_OPTS="--reconnect --permit-write"
+ENV TTY2WEB_ADDRESS="0.0.0.0" \
+    TTY2WEB_PORT="9081" \
+    TTY2WEB_RECONNECT="true" \
+    TTY2WEB_PERMIT_WRITE="true" \
+    TTY2WEB_VERBOSE="true"
 
 ADD ./docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
+RUN set -ex \
+    && chmod +x /docker-entrypoint.sh
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["tmux", "new", "-A", "-s", "gotty", "/bin/bash"]
+ENTRYPOINT ["/sbin/tini", "/docker-entrypoint.sh"]
+CMD ["tmux", "new", "-A", "-s", "webcli", "/bin/bash"]
 
