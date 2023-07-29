@@ -56,11 +56,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # set latest tag for master branch
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
-            # branch event
             type=ref,event=branch
-            # tag event
             type=ref,event=tag
 
       # Build and push Docker image with Buildx (don't push on PR)
